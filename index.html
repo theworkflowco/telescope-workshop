@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build Reusable GTM Skills in Claude Code</title>
+
+  <!-- reveal.js from CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/simple.min.css" id="theme">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Lilex:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --wfco-cream: #f0ecea;
+      --wfco-dark: #1e1515;
+      --wfco-dark-mid: #302323;
+      --wfco-text: #171717;
+      --wfco-brown: #ba7350;
+      --wfco-gold: #dda517;
+      --wfco-gold-light: #eed28b;
+      --wfco-divider: #d9d4d1;
+    }
+
+    .reveal {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 32px;
+    }
+
+    /* ── Dark slide (default) ── */
+    .reveal .slides section {
+      background: var(--wfco-dark);
+      color: var(--wfco-cream);
+    }
+
+    /* ── Light / cream slide ── */
+    .reveal .slides section.cream {
+      background: var(--wfco-cream);
+      color: var(--wfco-text);
+    }
+    .reveal .slides section.cream h1,
+    .reveal .slides section.cream h2,
+    .reveal .slides section.cream h3 {
+      color: var(--wfco-text);
+    }
+    .reveal .slides section.cream .accent {
+      color: var(--wfco-brown);
+    }
+
+    /* ── Typography ── */
+    .reveal h1 {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 700;
+      font-size: 2.2em;
+      color: var(--wfco-cream);
+      text-transform: none;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .reveal h2 {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 700;
+      font-size: 1.6em;
+      color: var(--wfco-cream);
+      text-transform: none;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .reveal p, .reveal li {
+      font-weight: 400;
+      line-height: 1.6;
+      font-size: 0.85em;
+    }
+
+    .reveal ul {
+      list-style: none;
+      padding-left: 0;
+      text-align: left;
+    }
+
+    .reveal li {
+      margin-bottom: 0.5em;
+      padding-left: 1.4em;
+      position: relative;
+    }
+
+    .reveal li::before {
+      content: '\2192';
+      position: absolute;
+      left: 0;
+      color: rgba(240, 236, 234, 0.35);
+      font-weight: 600;
+    }
+
+    /* ── Accent helpers ── */
+    .accent { color: var(--wfco-gold); }
+    .brown  { color: var(--wfco-brown); }
+    .mono   { font-family: 'Lilex', monospace; font-size: 0.85em; }
+    .dim    { opacity: 0.55; }
+    .small  { font-size: 0.65em; }
+    .medium { font-size: 0.75em; }
+    .mt-1   { margin-top: 1em; }
+
+    .flow-pattern {
+      font-size: 1.3em;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .dim-line {
+      width: 80px;
+      height: 3px;
+      background: var(--wfco-cream);
+      opacity: 0.35;
+      border: none;
+      margin: 0.8em auto;
+    }
+
+    /* ── Section number badge ── */
+    .section-num {
+      display: inline-block;
+      font-family: 'Lilex', monospace;
+      font-size: 0.5em;
+      color: rgba(240, 236, 234, 0.4);
+      border: 2px solid rgba(240, 236, 234, 0.25);
+      border-radius: 50%;
+      width: 1.8em;
+      height: 1.8em;
+      line-height: 1.7em;
+      text-align: center;
+      margin-bottom: 0.6em;
+    }
+
+    /* ── Code ── */
+    .reveal code {
+      font-family: 'Lilex', monospace;
+      background: rgba(240, 236, 234, 0.1);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    /* ── Speaker notes styling ── */
+    .reveal aside.notes {
+      font-family: 'Nunito Sans', sans-serif;
+    }
+
+    /* ── Slide background sizing ── */
+    .reveal .slides section {
+      padding: 80px 60px 40px;
+      box-sizing: border-box;
+      height: 100%;
+      display: flex !important;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    /* ── Felt / paper noise texture ── */
+    .reveal .slides section::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 1;
+      background-image: url("noise.png");
+      background-repeat: repeat;
+      opacity: 0.4;
+    }
+
+    .reveal .slides section.cream::after {
+      opacity: 0.6;
+    }
+
+    /* ── Terminal action slides ── */
+    .reveal .slides section.terminal-slide {
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+    }
+
+    .terminal {
+      background: var(--wfco-dark);
+      border: 4px solid var(--wfco-text);
+      border-radius: 8px;
+      box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2);
+      width: 820px;
+      padding: 24px 32px 32px;
+    }
+
+    .terminal-header {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid rgba(237, 233, 229, 0.15);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid rgba(237, 233, 229, 0.2);
+    }
+    .terminal-dot.red    { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green  { background: #27c93f; }
+
+    .terminal-body {
+      font-family: 'Lilex', monospace;
+      color: var(--wfco-cream);
+      font-size: 22px;
+      line-height: 1.7;
+      text-align: left;
+    }
+
+    .terminal-prompt {
+      color: var(--wfco-gold);
+      margin-right: 0.6em;
+      user-select: none;
+    }
+
+    .terminal-cursor {
+      display: inline-block;
+      width: 0.55em;
+      height: 1.1em;
+      background: var(--wfco-gold);
+      margin-left: 0.15em;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* ── Custom fragment: focus-in (blurred ghost → sharp) ── */
+    .reveal .slides section .fragment.focus-in {
+      opacity: 0.3;
+      filter: blur(8px);
+      visibility: visible !important;
+      transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                  filter 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .reveal .slides section .fragment.focus-in.visible {
+      opacity: 1;
+      filter: blur(0);
+    }
+
+    /* ── Progress bar ── */
+    .reveal .progress span {
+      background: var(--wfco-gold);
+    }
+
+    /* ── Slide number ── */
+    .reveal .slide-number {
+      font-family: 'Lilex', monospace;
+      font-size: 14px;
+      color: var(--wfco-gold-light);
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE 1: TITLE
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <h1>Build Reusable<br>GTM Skills<br>in Claude Code</h1>
+      <hr class="dim-line">
+      <p class="mono medium">Joe Rhew &nbsp;&middot;&nbsp; <span class="accent">The Workflow Company</span></p>
+      <p class="mono small dim">Telescope Partners Workshop &nbsp;|&nbsp; Feb 18, 2026</p>
+
+      <aside class="notes">
+        Welcome everyone. I'm Joe Rhew, founder of The Workflow Company.
+
+        Quick context: This is session 2 of 3. Jacob covered Context OS in session 1. Today we're building on that — creating reusable skills that run ON TOP of your context.
+
+        Don't worry if you missed session 1. Everything we do today is self-contained.
+
+        By the end of this session you'll have built a skill from scratch, iterated on it as a group, and understood the pattern for building any skill you want.
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE: ABOUT WFCO + JOE
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <h2><span class="accent">The Workflow Company</span></h2>
+      <hr class="dim-line">
+      <ul>
+        <li class="fragment focus-in">Your GTM playbook is the same one your competitors are running</li>
+        <li class="fragment focus-in">We build <span class="accent">bespoke AI systems</span> that turn your team's expertise into a compounding advantage</li>
+        <li class="fragment focus-in">Today you're learning the same toolkit we use to build these systems — for your own team</li>
+      </ul>
+
+      <aside class="notes">
+        Keep to 2 minutes. Lead with the problem, not the resume.
+
+        "Quick show of hands — how many of you are using some combination of Apollo, Clay, LinkedIn Sales Nav, and ChatGPT for outbound? Yeah. So is everyone else. That's the problem."
+
+        "I'm Joe, I run The Workflow Company. We build bespoke AI-powered GTM systems for growth-stage startups — Series A through D, B2B SaaS. The thesis is simple: if everyone's running the same tools and the same playbook, signals get commoditized. The custom 10-20% on top of that — that's where competitive advantage actually accrues."
+
+        "We've been doing this for about two and a half years. Bootstrapped, team of five. Our whole stack runs on Claude Code — context repos, skills, automation. Every client engagement starts with encoding THEIR expertise into a system that gets better every time it runs."
+
+        "What I'm showing you today isn't theory. The skills pattern we're covering is the exact same process we use with clients shipping competitive intel, lead enrichment, and personalized outreach at scale. You'll walk out of here with the building blocks."
+
+        Don't oversell — let the demo do the talking. This slide earns credibility by naming a real pain, not listing services.
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         ACTION: SHOW PRODUCTION EXAMPLES
+         ═══════════════════════════════════════════════ -->
+    <section class="cream terminal-slide">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="terminal-prompt">$</span>Let's look at a few real examples<span class="terminal-cursor"></span>
+        </div>
+      </div>
+
+      <aside class="notes">
+        SHOW 2-3 ANONYMIZED EXAMPLES of real production work:
+        • Competitive intelligence briefings generated on demand
+        • Automated meeting summaries → CRM updates
+        • LinkedIn research → enriched lead profiles
+
+        IMPORTANT: Tell Claude not to mention client names.
+
+        "This is what excellent looks like. Today I'm going to show you the building blocks to get here."
+
+        Purpose: Set the aspirational bar. Create FOMO. Make them want to build this.
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE: WHY SKILLS MATTER
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <div class="section-num">1</div>
+      <h2>Why Skills Matter</h2>
+      <hr class="dim-line">
+      <ul>
+        <li class="fragment focus-in"><span class="accent">Skills start rough — and get good through use.</span><br>
+          <span class="dim medium">Build → use → feedback → refine. The loop IS the product.</span></li>
+        <li class="fragment focus-in"><span class="accent">Distill knowledge you don't have.</span><br>
+          <span class="dim medium">Encode frameworks, expert interviews, best practices — use forever.</span></li>
+        <li class="fragment focus-in"><span class="accent">Unlike ChatGPT, improvements are permanent.</span><br>
+          <span class="dim medium">Every refinement compounds. Conversations don't start from zero.</span></li>
+      </ul>
+
+      <aside class="notes">
+        "Jacob showed you how to build the context. Today I'm showing you how to build repeatable workflows on top of it."
+
+        KEY PITCH: Skills = packaged playbooks. Defined inputs, constraints, outputs. Same quality every time.
+
+        ANALOGY: "It's like working with a junior analyst. First output is rough, but you train them with feedback and they get better permanently."
+
+        ChatGPT comparison: Every ChatGPT conversation starts from zero. With Claude Code skills, your improvements are saved. They compound. That's the investment case.
+
+        "By the end of this, you'll have built one skill from scratch, iterated on it together, and understood the pattern for building any skill."
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         ACTION: LIVE BUILD v0
+         ═══════════════════════════════════════════════ -->
+    <section class="cream terminal-slide">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="terminal-prompt">$</span>Let's build a Competitive Brief — v0<span class="terminal-cursor"></span>
+        </div>
+      </div>
+
+      <aside class="notes">
+        DEMO TIME. Switch to Claude Code.
+
+        1. Create a new SKILL.md file — keep it intentionally minimal (~10 lines)
+        2. Just: "Given a company URL, research and produce a competitive brief"
+        3. Run it on a known company (pre-tested URL)
+
+        If inside a Context OS repo: Claude pulls in existing company context. Point this out: "See how it used the context already in the repo?"
+
+        If no context repo: output will be more generic — that's fine, it still works.
+
+        PAUSE AND SHOW THE OUTPUT. Don't judge it yet. Just look at it together.
+
+        "This is v0. It's rough. That's the point. Let's see what we can improve."
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE: WHAT IS A SKILL?
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <div class="section-num">2</div>
+      <h2>What <em>is</em> a skill?</h2>
+      <hr class="dim-line">
+      <ul>
+        <li class="fragment focus-in">A <span class="accent">markdown file</span> with a YAML header</li>
+        <li class="fragment focus-in">Lives in <code>.claude/skills/</code> <span class="dim medium">(project or global)</span></li>
+        <li class="fragment focus-in">Invoked explicitly <code>/skill-name</code> or automatically by context</li>
+        <li class="fragment focus-in">There's a <span class="accent">skill for creating skills</span></li>
+      </ul>
+
+      <aside class="notes">
+        Keep this TIGHT — 5 minutes max. They just need the mental model.
+
+        Show the .claude/skills/ directory in the file tree.
+
+        Two ways Claude finds skills:
+        • Explicit: you type /skill-name
+        • Automatic: Claude reads the skill description and calls it when relevant
+
+        Show the skill-creator skill: "There's a skill for creating skills. You can download it from a marketplace or build your own."
+
+        Key point: It's just markdown. If you can write a Google Doc, you can write a skill. No coding required.
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         ACTION: AUDIENCE FEEDBACK
+         ═══════════════════════════════════════════════ -->
+    <section class="cream terminal-slide">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="terminal-prompt">$</span>Let's discuss — what's missing?<br>
+          <span class="terminal-prompt">&gt;</span>How would you improve it?<span class="terminal-cursor"></span>
+        </div>
+      </div>
+
+      <aside class="notes">
+        INTERACTIVE SECTION. Get 3-4 suggestions from the room.
+
+        "Look at that output. What's missing? What would make this actually useful for your job?"
+
+        Steer toward:
+        • More structure / consistent sections
+        • Specific weaknesses or gaps
+        • Real competitive frameworks (sets up Seven Powers)
+
+        Take their feedback and feed it to Claude live: "Update the skill based on this feedback."
+
+        SHOW THE DIFF — the SKILL.md evolved based on real feedback.
+
+        Teaching moment: "You didn't rewrite the skill. You told Claude what was wrong, and it improved permanently."
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         ACTION: ENCODE SEVEN POWERS
+         ═══════════════════════════════════════════════ -->
+    <section class="cream terminal-slide">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="terminal-prompt">$</span>Let's encode a real strategy framework<br>
+          <span class="terminal-prompt">&gt;</span>into the skill<span class="terminal-cursor"></span>
+        </div>
+      </div>
+
+      <aside class="notes">
+        "What if we brought in a real competitive framework?"
+
+        Add Hamilton Helmer's Seven Powers to the skill:
+        • Scale economies
+        • Network effects
+        • Switching costs
+        • Counter-positioning
+        • Cornered resource
+        • Process power
+        • Branding
+
+        Run it again. Output should be NOTICEABLY more structured and insightful.
+
+        THIS IS THE KEY MOMENT: "We just encoded a book's worth of expertise into 40 lines of markdown. The skill is now smarter than most analysts."
+
+        This demonstrates the "distilling knowledge" thesis. You don't need to be a strategy expert — you just need to point the skill at the right framework.
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE: SEVEN POWERS CONTENT
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <div class="section-num">3</div>
+      <h2>Encoding expertise:<br><span class="accent">Seven Powers</span></h2>
+      <hr class="dim-line">
+      <ul>
+        <li>Scale Economies &nbsp;&middot;&nbsp; Network Effects &nbsp;&middot;&nbsp; Switching Costs</li>
+        <li>Counter-Positioning &nbsp;&middot;&nbsp; Cornered Resource</li>
+        <li>Process Power &nbsp;&middot;&nbsp; Branding</li>
+      </ul>
+      <p class="small dim">"We just encoded a book into 40 lines of markdown."</p>
+
+      <aside class="notes">
+        Show the Seven Powers list on screen while you talk through how each one applies.
+
+        The audience should be seeing the improved output by now.
+
+        "The skill is now smarter than most analysts. And it took us 5 minutes to add this."
+
+        Transition: "OK — but does it generalize? Let's find out."
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         ACTION: REUSE ON DIFFERENT COMPANY
+         ═══════════════════════════════════════════════ -->
+    <section class="cream terminal-slide">
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+        </div>
+        <div class="terminal-body">
+          <span class="terminal-prompt">$</span>Let's point the same skill at a<br>
+          <span class="terminal-prompt">&gt;</span>different company<span class="terminal-cursor"></span>
+        </div>
+      </div>
+
+      <aside class="notes">
+        "You built this skill for one competitor. Let's point it at a different one."
+
+        Run the SAME skill on a second company URL. Different input, consistent quality.
+
+        THE AHA MOMENT: Same skill, different input, same structured output. It's like stamping.
+
+        HANDS-ON MOMENT: If attendees have Claude Code, this is where they try on their own.
+        • "Pick a competitor. Drop the URL in. Run the skill."
+        • Give them 3-5 minutes
+
+        Optional share-out: "What surprised you about the output?"
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE: BEST PRACTICES
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <div class="section-num">4</div>
+      <h2>Best Practices</h2>
+      <hr class="dim-line">
+      <ul>
+        <li class="fragment focus-in"><span class="accent">The interview pattern</span> — teach the skill to ask questions first</li>
+        <li class="fragment focus-in"><span class="accent">Start vague, refine through use</span> — don't write the perfect skill upfront</li>
+        <li class="fragment focus-in"><span class="accent">Marketplace for gaps</span> — use pre-built skills when you lack domain expertise</li>
+        <li class="fragment focus-in"><span class="accent">Custom for your expertise</span> — your knowledge + iteration beats any template</li>
+      </ul>
+      <p class="small dim fragment focus-in">You don't need 100 skills. You need 3–5 that are really dialed in.</p>
+
+      <aside class="notes">
+        BEST PRACTICES:
+
+        1. THE INTERVIEW PATTERN: "A good skill knows what it doesn't know." Teach skills to ask questions before making assumptions. Every competitor is different.
+
+        2. START VAGUE: Don't try to write the perfect skill upfront. Build, use, get feedback, iterate.
+
+        3. SKILLS ECOSYSTEM:
+           • Marketplace skills: when you LACK domain expertise (UX accessibility, legal compliance). Someone who knows encoded the right questions.
+           • Custom skills: when you HAVE domain expertise. Your knowledge + iteration > generic template.
+           • Middle path: download a skill, read it (it's just markdown), delete what doesn't apply, customize the rest.
+
+        4. QUICK SHOWCASE:
+           • Humanizer — turns AI slop into natural writing. "What if we made it sound like YOU?"
+           • Brainstorming — structured creative exploration before building
+           • Mention Vercel's skill repository
+
+        DOMAIN EXPERTISE PRINCIPLE: "The best skill builders aren't the most technical — they're the ones who know their domain best."
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         SLIDE: WRAP + CTA
+         ═══════════════════════════════════════════════ -->
+    <section>
+      <h2>The Pattern</h2>
+      <hr class="dim-line">
+      <p class="flow-pattern">
+        <span class="accent fragment focus-in" data-fragment-index="1">Build</span> <span class="dim fragment focus-in" data-fragment-index="1">&rarr;</span>
+        <span class="accent fragment focus-in" data-fragment-index="2">Use</span> <span class="dim fragment focus-in" data-fragment-index="2">&rarr;</span>
+        <span class="accent fragment focus-in" data-fragment-index="3">Feedback</span> <span class="dim fragment focus-in" data-fragment-index="3">&rarr;</span>
+        <span class="accent fragment focus-in" data-fragment-index="4">Refine</span>
+      </p>
+      <hr class="dim-line">
+      <div class="fragment focus-in" data-fragment-index="5">
+        <p class="medium">Skills get better through use.<br>Improvements are permanent. They compound.</p>
+        <br>
+        <p class="small"><span class="brown">The Workflow Company</span> helps teams implement this at scale.</p>
+        <p class="small dim">Q&amp;A — ask anything, share screens, troubleshoot live</p>
+      </div>
+
+      <aside class="notes">
+        RECAP the key takeaways:
+
+        1. Skills start rough — that's the point. The value is in the iteration loop.
+        2. The feedback loop is permanent. Unlike ChatGPT, improvements persist.
+        3. Distill expert knowledge into skills. Frameworks, best practices — encode once, use forever.
+        4. Reusability is the payoff. Build once, run on any company.
+        5. You don't need to be technical. If you can describe what's wrong, you can improve it.
+
+        HOW WFCO HELPS:
+        "We help teams implement this at scale — building the skills, the context repos, the workflows that make your team faster."
+
+        OPEN Q&amp;A:
+        • People can share screens
+        • Get help troubleshooting
+        • Show more advanced stuff for curious audience (GitHub workflows, Slack integration, team coordination)
+
+        If engagement is high: let people drive and share.
+        If low: show 1-2 more advanced demos to keep momentum.
+      </aside>
+    </section>
+
+  </div><!-- .slides -->
+</div><!-- .reveal -->
+
+<!-- reveal.js core + notes plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    controls: true,
+    progress: true,
+    center: false,
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    plugins: [ RevealNotes ],
+    width: 1280,
+    height: 720
+  });
+</script>
+
+</body>
+</html>
